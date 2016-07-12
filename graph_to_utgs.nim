@@ -7,6 +7,8 @@ import sequtils #mapIt
 const
   dna_norm = "ACGTacgtNn-"
   dna_comp = "TGCAtgcaNn-"
+var
+  foo: array[0..dna_norm.high, char]
 proc try1() =
   var
     a = sequtils.toSeq(unicode.runes(dna_norm))
@@ -19,9 +21,61 @@ proc try2() =
     b = dna_comp.toRunes().mapIt(it.toUTF8)
     rcmap = sequtils.zip( a, b )
   echo(rcmap)
+proc charSeq(s: string): seq[char] =
+  result = newSeq[char](s.len)
+  for i in 0 .. s.high:
+    result[i] = s[i]
+iterator charYield(s: string): char {.inline.} =
+  for i in 0 .. s.high:
+    yield s[i]
+#proc charSeqX(s: string): seq[char] =
+#  result = array[0..s.high, char]
+#  for i in 0 .. s.high:
+#    result[i] = s[i]
+proc try3() =
+  var
+    a = charSeq(dna_norm)
+    b = charSeq(dna_comp)
+    rcmap = sequtils.zip( a, b )
+  echo(rcmap)
+proc try4() =
+  var
+    a = toSeq(charYield(dna_norm))
+    b = toSeq(charYield(dna_comp))
+    rcmap = sequtils.zip( a, b )
+  echo(rcmap)
+template toArrayChars(s: string{`const`}): expr =
+  type
+    x = array[0..s.high, char]
+  var
+    res: x
+  for i in 0 .. s.high:
+    res[i] = s[i]
+  res
+template zipArrayChars(a, b: string{`const`}): expr =
+  type
+    y = tuple[first, second: char]
+    x = seq[y]
+  var
+    rcmap: x = newSeq[y](a.len)
+  for i in 0 .. a.high:
+    rcmap[i] = (a[i], b[i])
+  rcmap
+
+proc try5() =
+  var
+    a = toArrayChars(dna_norm)
+    b = toArrayChars(dna_comp)
+    #rcmap = sequtils.zip( a, b )
+    rcmap = zipArrayChars(dna_norm, dna_comp)
+  echo($rcmap)
+
 echo("Hello")
 try1()
 try2()
+try3()
+try4()
+try5()
 #proc rc(s):
 #    return "".join([RCMAP[c] for c in s[::-1]])
 #for i in rcmap:

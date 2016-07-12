@@ -1,16 +1,29 @@
 import typeinfo
 from unicode import nil
 from sequtils import nil
-var
+import unicode #toRunes
+import sequtils #mapIt
 
+const
   dna_norm = "ACGTacgtNn-"
   dna_comp = "TGCAtgcaNn-"
-  a = sequtils.toSeq(unicode.runes(dna_norm))
-  b = sequtils.toSeq(unicode.runes(dna_comp))
-  rcmap = sequtils.zip( a, b )
-
+proc try1() =
+  var
+    a = sequtils.toSeq(unicode.runes(dna_norm))
+    b = sequtils.toSeq(unicode.runes(dna_comp))
+    rcmap = sequtils.zip( a, b )
+  echo(rcmap)
+proc try2() =
+  var
+    a = dna_norm.toRunes().mapIt(it.toUTF8)
+    b = dna_comp.toRunes().mapIt(it.toUTF8)
+    rcmap = sequtils.zip( a, b )
+  echo(rcmap)
 echo("Hello")
-echo(rcmap)
+try1()
+try2()
+#proc rc(s):
+#    return "".join([RCMAP[c] for c in s[::-1]])
 #for i in rcmap:
   #echo $i
   #for j in fields(i):

@@ -1,15 +1,18 @@
 import typeinfo
+from unicode import nil
 from sequtils import nil
 var
-  dna_norm = @['x', 'y']
-  dna_comp = @[3,4]
-  rcmap = sequtils.zip( dna_norm, dna_comp )
+
+  dna_norm = "ACGTacgtNn-"
+  dna_comp = "TGCAtgcaNn-"
+  a = sequtils.toSeq(unicode.runes(dna_norm))
+  b = sequtils.toSeq(unicode.runes(dna_comp))
+  rcmap = sequtils.zip( a, b )
 
 echo("Hello")
 echo(rcmap)
-echo(repr(rcmap))
-for i in rcmap:
-  echo $i
+#for i in rcmap:
+  #echo $i
   #for j in fields(i):
   #  echo $j
 #echo(repr(type(rcmap)))

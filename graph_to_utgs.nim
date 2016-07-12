@@ -1,3 +1,18 @@
+import typeinfo
+from sequtils import nil
+var
+  dna_norm = @['x', 'y']
+  dna_comp = @[3,4]
+  rcmap = sequtils.zip( dna_norm, dna_comp )
+
+echo("Hello")
+echo(rcmap)
+echo(repr(rcmap))
+for i in rcmap:
+  echo $i
+  #for j in fields(i):
+  #  echo $j
+#echo(repr(type(rcmap)))
 #[
 from falcon_kit import kup, falcon, DWA
 from falcon_kit.fc_asm_graph import AsmGraph

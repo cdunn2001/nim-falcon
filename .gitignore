@@ -1,4 +1,2 @@
 /nimcache/
-/graph_to_utgs
-/graph_to_contig
-/consensus
+*.exe

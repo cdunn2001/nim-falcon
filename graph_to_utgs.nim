@@ -1,83 +1,103 @@
-import typeinfo
-from unicode import nil
 from sequtils import nil
-import unicode #toRunes
-import sequtils #mapIt
+from strutils import nil
+from tables import toTable, `[]`
+import future
+import tables # to echo a table
 
-const
-  dna_norm = "ACGTacgtNn-"
-  dna_comp = "TGCAtgcaNn-"
-var
-  foo: array[0..dna_norm.high, char]
-proc try1() =
-  var
-    a = sequtils.toSeq(unicode.runes(dna_norm))
-    b = sequtils.toSeq(unicode.runes(dna_comp))
-    rcmap = sequtils.zip( a, b )
-  echo(rcmap)
-proc try2() =
-  var
-    a = dna_norm.toRunes().mapIt(it.toUTF8)
-    b = dna_comp.toRunes().mapIt(it.toUTF8)
-    rcmap = sequtils.zip( a, b )
-  echo(rcmap)
 proc charSeq(s: string): seq[char] =
   result = newSeq[char](s.len)
   for i in 0 .. s.high:
     result[i] = s[i]
-iterator charYield(s: string): char {.inline.} =
-  for i in 0 .. s.high:
-    yield s[i]
-#proc charSeqX(s: string): seq[char] =
-#  result = array[0..s.high, char]
-#  for i in 0 .. s.high:
-#    result[i] = s[i]
-proc try3() =
-  var
-    a = charSeq(dna_norm)
-    b = charSeq(dna_comp)
-    rcmap = sequtils.zip( a, b )
-  echo(rcmap)
-proc try4() =
-  var
-    a = toSeq(charYield(dna_norm))
-    b = toSeq(charYield(dna_comp))
-    rcmap = sequtils.zip( a, b )
-  echo(rcmap)
-template toArrayChars(s: string{`const`}): expr =
-  type
-    x = array[0..s.high, char]
-  var
-    res: x
-  for i in 0 .. s.high:
-    res[i] = s[i]
-  res
-template zipArrayChars(a, b: string{`const`}): expr =
-  type
-    y = tuple[first, second: char]
-    x = seq[y]
-  var
-    rcmap: x = newSeq[y](a.len)
-  for i in 0 .. a.high:
-    rcmap[i] = (a[i], b[i])
-  rcmap
-
-proc try5() =
-  var
-    a = toArrayChars(dna_norm)
-    b = toArrayChars(dna_comp)
-    #rcmap = sequtils.zip( a, b )
-    rcmap = zipArrayChars(dna_norm, dna_comp)
-  echo($rcmap)
-
+const
+  dna_norm = "ACGTacgtNn-"
+  dna_comp = "TGCAtgcaNn-"
+  arclist = sequtils.zip(sequtils.toSeq(dna_norm.items), sequtils.toSeq(dna_comp.items))
+  rclist = sequtils.zip(charSeq(dna_norm), charSeq(dna_comp))
+var
+  rcmap = tables.toTable(rclist)
 echo("Hello")
-try1()
-try2()
-try3()
-try4()
-try5()
-#proc rc(s):
-#    return "".join([RCMAP[c] for c in s[::-1]])
+echo(rclist)
+echo(rcmap)
+#for i,j in tables.pairs(rcmap):
+#  echo $i
+#var tp = sequtils.toSeq(tables.pairs(rcmap))
+#echo(tp)
+#var ll = future.lc[(newJString($p[0]), newJFloat(float(p[1]))) | (p <- sequtils.toSeq(tables.pairs(rcmap))), (JsonNode, JsonNode)]
+#echo(ll)
+#var jrcmap = tables.toTable(ll)
+#echo (jrcmap)
+##var j = %* jrcmap
+##echo(j)
+proc reversed(s: string): string =
+  result = newString(s.len)
+  for i,c in s:
+    result[s.high - i] = c
+proc rc*(s: string): string =
+  return strutils.join(future.lc[rcmap[c] | (c <- items(reversed(s))), char])
+echo(strutils.join(rc("Gattaca"))) # Ha! works on string and seq[char] too.
+    #return "".join([RCMAP[c] for c in s[::-1]])
+proc hi(): int =
+  return 5
+type
+  AlnData = int
+  SeqAlnData = seq[AlnData]
+  MatchSeq = seq[int]
+  Nts = string
+proc newSeqAlnData(): ref SeqAlnData =
+  new(result)
+  result[] = newSeq[AlnData]()
+proc newMatchSeq(): ref MatchSeq =
+  new(result)
+  result[] = newSeq[int]()
+proc get_aln_data(t_seq, q_seq: ref Nts): (ref seq[AlnData], ref MatchSeq, ref MatchSeq) =
+  echo "hi"
+  const
+    K = 8
+  var
+    aln_data = newSeqAlnData()
+    x = newMatchSeq()
+    y = newMatchSeq()
+    seq0 = t_seq
+  #[
+    # aln_data.append( ( q_id, 0, s1, e1, len(q_seq), s2, e2, len(seq0), alignment[0].aln_str_size, alignment[0].dist ) )
+    K = 8
+    seq0 = t_seq
+    lk_ptr = kup.allocate_kmer_lookup( 1 << (K * 2) )
+    sa_ptr = kup.allocate_seq( len(seq0) )
+    sda_ptr = kup.allocate_seq_addr( len(seq0) )
+    kup.add_sequence( 0, K, seq0, len(seq0), sda_ptr, sa_ptr, lk_ptr)
+    q_id = "dummy"
+
+    kmer_match_ptr = kup.find_kmer_pos_for_seq(q_seq, len(q_seq), K, sda_ptr, lk_ptr)
+    kmer_match = kmer_match_ptr[0]
+    aln_range_ptr = kup.find_best_aln_range(kmer_match_ptr, K, K*5, 12)
+    aln_range = aln_range_ptr[0]
+    x,y = zip( * [ (kmer_match.query_pos[i], kmer_match.target_pos[i]) for i in range(kmer_match.count)] )
+    kup.free_kmer_match(kmer_match_ptr)
+    s1, e1, s2, e2 = aln_range.s1, aln_range.e1, aln_range.s2, aln_range.e2
+
+    if e1 - s1 > 100:
+
+        alignment = DWA.align(q_seq[s1:e1], e1-s1,
+                              seq0[s2:e2], e2-s2,
+                              1500,1)
+
+        if alignment[0].aln_str_size > 100:
+            aln_data.append( ( q_id, 0, s1, e1, len(q_seq), s2, e2, len(seq0), alignment[0].aln_str_size, alignment[0].dist ) )
+            aln_str1 = alignment[0].q_aln_str
+            aln_str0 = alignment[0].t_aln_str
+
+        DWA.free_alignment(alignment)
+
+    kup.free_kmer_lookup(lk_ptr)
+    kup.free_seq_array(sa_ptr)
+    kup.free_seq_addr_array(sda_ptr)
+    return aln_data, x, y
+  ]#
+  #return (newSeq[int](), newSeq[int](), newSeq[int]())
+  return (aln_data, x, y)
+#discard get_aln_data(newSeq[int](), newSeq[int]())
+discard get_aln_data(new(Nts), new(Nts))
 #for i in rcmap:
   #echo $i
   #for j in fields(i):

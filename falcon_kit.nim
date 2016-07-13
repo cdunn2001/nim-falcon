@@ -82,8 +82,6 @@ proc find_kmer_pos_for_seq*(a2: cstring; a3: seq_coor_t; K: cuint; a5: seq_addr_
     importc: "find_kmer_pos_for_seq", header: "common.h".}
 proc free_kmer_match*(`ptr`: ptr kmer_match) {.cdecl, importc: "free_kmer_match",
     header: "common.h".}
-proc free_kmer_lookup*(a2: ptr kmer_lookup) {.cdecl, importc: "free_kmer_lookup",
-    header: "common.h".}
 proc add_sequence*(a2: seq_coor_t; a3: cuint; a4: cstring; a5: seq_coor_t;
                   a6: seq_addr_array; a7: seq_array; a8: ptr kmer_lookup) {.cdecl,
     importc: "add_sequence", header: "common.h".}
@@ -95,3 +93,5 @@ proc free_alignment*(a2: ptr alignment) {.cdecl, importc: "free_alignment",
                                       header: "common.h".}
 proc free_consensus_data*(a2: ptr consensus_data) {.cdecl,
     importc: "free_consensus_data", header: "common.h".}
+#[
+]#

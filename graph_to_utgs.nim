@@ -1,3 +1,7 @@
+#{.passC: "-Wall -Werror -Ic".}
+{.passL: "-Lc -lfalcon_kit".}
+
+import falcon_kit as kup
 from sequtils import nil
 from strutils import nil
 from tables import toTable, `[]`
@@ -58,6 +62,7 @@ proc get_aln_data(t_seq, q_seq: ref Nts): (ref seq[AlnData], ref MatchSeq, ref M
     x = newMatchSeq()
     y = newMatchSeq()
     seq0 = t_seq
+    lk_ptr:auto = kup.allocate_kmer_lookup( 1 shl (K * 2) )
   #[
     # aln_data.append( ( q_id, 0, s1, e1, len(q_seq), s2, e2, len(seq0), alignment[0].aln_str_size, alignment[0].dist ) )
     K = 8

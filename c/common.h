@@ -1,3 +1,11 @@
+#ifdef C2NIM
+#  dynlib falcon_kit_so
+#  cdecl
+#@
+const falcon_kit_so = "c/libfalcon_kit.dylib"
+@#
+#endif
+
 typedef int seq_coor_t; 
 
 typedef struct {    

@@ -53,8 +53,13 @@ proc newSeqAlnData(): ref SeqAlnData =
 proc newMatchSeq(): ref MatchSeq =
   new(result)
   result[] = newSeq[int]()
+proc newNts(v: string): ref Nts =
+  new(result)
+  result[] = v
+proc clen(s: ref Nts): cint =
+  return cast[cint](s[].len)
 proc get_aln_data(t_seq, q_seq: ref Nts): (ref seq[AlnData], ref MatchSeq, ref MatchSeq) =
-  echo "hi"
+  echo "running get_aln_data!"
   const
     K = 8
   var
@@ -63,13 +68,12 @@ proc get_aln_data(t_seq, q_seq: ref Nts): (ref seq[AlnData], ref MatchSeq, ref M
     y = newMatchSeq()
     seq0 = t_seq
     lk_ptr:auto = kup.allocate_kmer_lookup( 1 shl (K * 2) )
+    sa_ptr:auto = kup.allocate_seq( clen(seq0) )
+    sda_ptr:auto = kup.allocate_seq_addr( clen(seq0) )
+
+  kup.add_sequence( cast[seq_coor_t](0), cast[cuint](K), seq0[], clen(seq0), sda_ptr, sa_ptr, lk_ptr)
   #[
     # aln_data.append( ( q_id, 0, s1, e1, len(q_seq), s2, e2, len(seq0), alignment[0].aln_str_size, alignment[0].dist ) )
-    K = 8
-    seq0 = t_seq
-    lk_ptr = kup.allocate_kmer_lookup( 1 << (K * 2) )
-    sa_ptr = kup.allocate_seq( len(seq0) )
-    sda_ptr = kup.allocate_seq_addr( len(seq0) )
     kup.add_sequence( 0, K, seq0, len(seq0), sda_ptr, sa_ptr, lk_ptr)
     q_id = "dummy"
 
@@ -102,7 +106,10 @@ proc get_aln_data(t_seq, q_seq: ref Nts): (ref seq[AlnData], ref MatchSeq, ref M
   #return (newSeq[int](), newSeq[int](), newSeq[int]())
   return (aln_data, x, y)
 #discard get_aln_data(newSeq[int](), newSeq[int]())
-discard get_aln_data(new(Nts), new(Nts))
+var
+  seq0: ref Nts = newNts("aaaaaaaaaaaaaaaaaaaaa")
+  seq1: ref Nts = newNts("tttttttttttttttttttttt")
+discard get_aln_data(seq0, seq1)
 #for i in rcmap:
   #echo $i
   #for j in fields(i):

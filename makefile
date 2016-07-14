@@ -1,7 +1,7 @@
 #NIM:=nim -d:release
 #NIM:=nim -d:release --threads:on --parallelBuild:1
 #NIM:=nim -d:release --parallelBuild:1
-NIM:=nim --listCmd
+NIM:=nim --listCmd --debugger:native
 DYLD_LIBRARY_PATH=./c
 export DYLD_LIBRARY_PATH
 
@@ -14,7 +14,7 @@ graph_to_utgs.exe: graph_to_utgs.nim falcon_kit.nim
 %.exe: %.nim
 	${NIM} c -o:$@ $<
 foo:
-	${CC} -o $@ -lfalcon_kit -L./c foo.c
+	${CC} -g -o $@ -lfalcon_kit -L./c foo.c
 c:
 	#c2nim --header --cdecl c/common.h --out:falcon_kit.nim
 	#c2nim --prefix:hyperclient_ --dynlib:libname --cdecl hyperclient.h --out:hyperclient.nim
@@ -23,4 +23,6 @@ c:
 	#c2nim --cdecl c/common.h --out:falcon_kit.nim
 clean:
 	rm -f *.exe
+cleaner: clean
+	rm -rf nimcache/
 .PHONY: c
